@@ -19,9 +19,9 @@ class Play extends Phaser.Scene {
         // add rocket (p1)
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0)
 
-        // add spaceships (x3)
+        // add spaceships (x4)
         this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*4, 'spaceship', 0, 30).setOrigin(0, 0)
-        this.ship02 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*5 + borderPadding*2, 'spaceship', 0, 20).setOrigin(0,0)
+        this.ship02 = new FastSpaceship(this, game.config.width + borderUISize*3, borderUISize*5 + borderPadding*2, 'fastspaceship', 0, 20).setOrigin(0,0)
         this.ship03 = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'spaceship', 0, 10).setOrigin(0,0)
 
         // define keys
@@ -58,8 +58,40 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for', scoreConfig).setOrigin(0.5)
             this.gameOver = true
         }, null, this)
-    }
 
+        let timerConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'right',
+            padding: {
+            top: 5,
+            bottom: 5,
+            },
+            fixedWidth: 100
+        }
+
+        this.timeRemain = game.settings.gameTimer / 1000;
+        this.timeText = this.add.text(game.config.width - 150, borderUISize + borderPadding * 2, 'Time: ' + this.timeRemain, timerConfig)
+
+        this.clock = this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.timeRemain -= 1
+                this.timeText.setText('Time: ' + this.timeRemain)
+                console.log('Time: ' + this.timeRemain)
+
+                if (this.timeRemain <= 0) {
+                    this.timeText.setText('Time: 0')
+                    this.clock.remove(false)
+                }
+            },
+            callbackScope: this,
+            loop: true
+        })
+    }
+    
     update() {
         // check key input for restart
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)) {
@@ -74,7 +106,7 @@ class Play extends Phaser.Scene {
 
         if(!this.gameOver) {               
             this.p1Rocket.update()         // update rocket sprite
-            this.ship01.update()           // update spaceships (x3)
+            this.ship01.update()           // update spaceships (x4)
             this.ship02.update()
             this.ship03.update()
         }         
@@ -109,6 +141,10 @@ class Play extends Phaser.Scene {
     shipExplode(ship) {
         // temporarily hide ship
         ship.alpha = 0             
+
+        // Add time for successful hit
+        let timeAdd = 50000
+        this.clock.delay += timeAdd
 
         // create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0)
