@@ -5,6 +5,7 @@ class Rocket extends Phaser.GameObjects.Sprite {
   
         // add object to existing scene
         scene.add.existing(this)
+        scene.physics.add.existing(this)
         this.isFiring = false
         this.moveSpeed = 2
         this.sfxShot = scene.sound.add('sfx-shot')
@@ -37,10 +38,18 @@ class Rocket extends Phaser.GameObjects.Sprite {
         }
     }
 
+    fire() {
+        if (!this.isFiring) {
+            this.isFiring = true
+            this.sfxShot.play()
+        }
+    }
+
     // reset rocket to "ground"
     reset() {
         this.isFiring = false
         this.y = game.config.height - borderUISize - borderPadding
+        this.scene.fireText.setVisible(false);
     }
   }
   

@@ -5,6 +5,7 @@ class Rocket2 extends Phaser.GameObjects.Sprite {
   
         // add object to existing scene
         scene.add.existing(this)
+        scene.physics.add.existing(this)
         this.isFiring = false
         this.moveSpeed = 2
         this.sfxShot = scene.sound.add('sfx-shot')
@@ -41,6 +42,7 @@ class Rocket2 extends Phaser.GameObjects.Sprite {
     reset() {
         this.isFiring = false
         this.y = game.config.height - borderUISize - borderPadding
+        this.scene.fireText.setVisible(false);
     }
   }
   
