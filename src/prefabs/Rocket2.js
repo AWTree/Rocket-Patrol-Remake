@@ -42,7 +42,7 @@ class Rocket2 extends Phaser.GameObjects.Sprite {
     reset() {
         this.isFiring = false
         this.y = game.config.height - borderUISize - borderPadding
-        this.scene.fireText.setVisible(false);
+        this.scene.fireText.setVisible(false)
     }
   }
   

@@ -19,7 +19,7 @@ class Play extends Phaser.Scene {
         // white borders
         this.add.rectangle(0, 0, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0, 0)
         this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0, 0)
-        this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
+        this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0)
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0)
 
         // add rocket (p1)
@@ -91,7 +91,7 @@ class Play extends Phaser.Scene {
 
 
         // fire text
-        this.fireText = this.add.text(game.config.width / 2, borderUISize + borderPadding*3.8, 'FIRE', scoreConfig).setOrigin(0.5)
+        this.fireText = this.add.text(game.config.width / 1.8, borderUISize + borderPadding*3.8, 'FIRE', scoreConfig).setOrigin(0.5)
         this.fireText.setVisible(false)
 
         this.input.on('pointerdown', (pointer) => {
@@ -108,34 +108,36 @@ class Play extends Phaser.Scene {
             callbackScope: this
         })
 
-        // display time
-        let timer = this.scoreLeft.x + this.scoreLeft.width + 10;
-        this.remainingTime = game.settings.gameTimer
-        this.timeDisplay = this.add.text(timer, this.scoreLeft.y, `Time: ${this.remainingTime}`, scoreConfig)
-    
+        this.gameTimeRemaining = game.settings.gameTimer / 1000
+
+        // Create a text element to display the remaining time
+        this.timeText = this.add.text(game.config.width / 4, borderUISize + borderPadding*2, 'Time: ' + this.gameTimeRemaining, 
+        { fontSize: '28px',   backgroundColor: '#F3B141', color: '#843605',  
+            padding: {
+            top: 5,
+            bottom: 5,
+            }
+        })
+
+        // Update the timer every second
         this.time.addEvent({
             delay: 1000,
-            callback: () => {
-                this.remainingTime --
-                this.timeDisplay.setText(`Time: ${this.remainingTime}`)
-                if (this.remainingTime <= 0) {
-                    this.timeDisplay.setText('Time: 0')
-                }
-            },
+            callback: this.updateTimer,
             callbackScope: this,
             loop: true
         })
 
         // GAME OVER flag
         this.gameOver = false
+        this.missed = false
 
         // 60-second play clock
-        scoreConfig.fixedWidth = 0
-        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-                this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
-                this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for', scoreConfig).setOrigin(0.5)
-                this.gameOver = true
-        }, null, this)
+        // scoreConfig.fixedWidth = 0
+        // this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+        //         this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
+        //         this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for', scoreConfig).setOrigin(0.5)
+        //         this.gameOver = true
+        // }, null, this)
     }
 
     update() {
@@ -152,18 +154,22 @@ class Play extends Phaser.Scene {
 
         if(!this.gameOver) {               
             this.p1Rocket.update()         // update rocket sprite
-            this.ship01.update()           // update spaceships (x4)
+            this.ship01.update()           // update spaceships (x3)
             this.ship02.update()
             this.ship03.update()
-        }         
+        }   
+
+        // if (this.isFiring && this.y <= borderUISize * 3 + borderPadding) {
+        //     this.addTime(-2)
+        // }
+      
     }
 
     shipExplode(ship) {
         // temporarily hide ship
-        ship.alpha = 0             
-
-        this.remainingTime += 3; // Add 3 seconds, adjust as needed
-        this.timeDisplay.setText(`Time: ${this.remainingTime}`);
+        ship.alpha = 0   
+                 
+        this.addTime(5)
 
         // create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0)
@@ -182,9 +188,36 @@ class Play extends Phaser.Scene {
     }
 
     increaseSpeed() {
-        this.ship01.moveSpeed += 1;
-        this.ship02.moveSpeed += 1;
-        this.ship03.moveSpeed += 1;
+        this.ship01.moveSpeed += 5
+        this.ship02.moveSpeed += 5
+        this.ship03.moveSpeed += 5
     }
 
+    updateTimer() {
+        let scoreConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'right',
+            padding: {
+            top: 5,
+            bottom: 5,
+            }
+        }
+        if (this.gameTimeRemaining > 0) {
+            this.gameTimeRemaining--
+            this.timeText.setText('Time: ' + this.gameTimeRemaining)
+        } else {
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for', scoreConfig).setOrigin(0.5)
+            this.gameOver = true
+        }
+    }
+
+    addTime(seconds) {
+        this.gameTimeRemaining += seconds
+        this.gameTimeRemaining = Math.max(0, this.gameTimeRemaining)
+        this.timeText.setText('Time: ' + this.gameTimeRemaining)
+    }
 }
